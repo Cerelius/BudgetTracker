@@ -1,6 +1,8 @@
 package userinterface;
 import java.applet.Applet;
 import java.awt.Button;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Label;
 import java.awt.TextField;
@@ -10,6 +12,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class AddTransaction extends BasicLayout implements ActionListener{
 
@@ -17,30 +20,46 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	JButton cancel = new JButton("Cancel");
 	JButton save = new JButton("Save Transaction");
 	
+	JLabel dateLabel = new JLabel("Date:");
+	JLabel titleLabel = new JLabel("Title:");
+	JLabel locationLabel = new JLabel("Location:");
+	JLabel categoryLabel = new JLabel("Category:");
+	JLabel accountLabel = new JLabel("Account Name:");
+	JLabel amountLabel = new JLabel ("Amount:");
+	JLabel frequencyLabel = new JLabel("Frequency:");
+	JTextField dateText = new JTextField(10);
+	JTextField titleText = new JTextField(10);
+	JTextField locationText = new JTextField(10);
+	JTextField categoryText = new JTextField(10);
+	JTextField accountText = new JTextField(10);
+	JTextField amountText = new JTextField(10);
+	JTextField frequencyText = new JTextField(10);
+	JLabel [] labels = {dateLabel, titleLabel, locationLabel, categoryLabel, accountLabel,amountLabel, frequencyLabel};
+	JTextField [] textFields = {dateText, titleText, locationText, categoryText, accountText, amountText, frequencyText};
+	
 	public AddTransaction(){
-		//use db transaction table to create labels
-			JPanel input_example = new JPanel();
-			input_example.setLayout(new GridLayout(3,2,10,10));
-			Label date = new Label("Date:");
-			TextField date_input = new TextField("10/30/1997");
-			input_example.add(date);
-			input_example.add(date_input);
-			Label loc = new Label("Location:");
-			TextField loc_input = new TextField("Taco Bell");
-			input_example.add(loc);
-			input_example.add(loc_input);
-			Label pmt = new Label("Payment Account:");
-			TextField pmt_input = new TextField("Credit");
-			input_example.add(pmt);
-			input_example.add(pmt_input);
-			middle.add(input_example);	
+		middle.setLayout(new GridBagLayout());
+		for (int i=0 ; i< labels.length ; i++){
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.gridx = 1;
+			c.gridy = i+1;
+			c.gridwidth=1;
+			middle.add(labels[i],c);
+			GridBagConstraints d = new GridBagConstraints();
+			d.fill = GridBagConstraints.HORIZONTAL;
+			d.gridx = 2;
+			d.gridy = i+1;
+			d.gridwidth=2;
+			middle.add(textFields[i],d);
+			textFields[i].addActionListener(this);
+		}
 		top.add(header);
 		bottom.setLayout(new GridLayout(1,2));
 		bottom.add(cancel);
 		cancel.addActionListener(this);
 		bottom.add(save);
 		save.addActionListener(this);
-
 	}
 
 	@Override
