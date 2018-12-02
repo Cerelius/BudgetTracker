@@ -72,8 +72,16 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 		}
 		//if save is pressed
 		if (label == "Save Transaction"){
+			String date = dateText.getText();
+			String title = titleText.getText();
+			String location = locationText.getText();
+			String category = categoryText.getText();
+			String account = categoryText.getText();
+			String amount = categoryText.getText();
+			String frequency = frequencyText.getText();
 			BudgetApplet.changeScreen("Transaction Summary");
 		}
+		
 		
 	}
 }

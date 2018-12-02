@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class AddAccount extends BasicLayout implements ActionListener{
-    //comment
+
 	JLabel header = new JLabel("Add Account");
 	JButton cancel = new JButton("Cancel");
 	JButton save = new JButton("Save Account");
@@ -70,6 +70,11 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		}
 		//if save is pressed 
 		if (label == "Save Account"){
+			String acctNum = acctNumText.getText();
+			String routNum = routNumText.getText();
+			String bank = bankText.getText();
+			String accName = acctNameText.getText();
+			String balance = balanceText.getText();
 			BudgetApplet.changeScreen("Accounts Summary");
 		}
 		

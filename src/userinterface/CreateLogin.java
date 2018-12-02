@@ -22,16 +22,16 @@ public class CreateLogin extends JPanel implements ActionListener {
 	JLabel emailLabel = new JLabel("EMAIL:");
 	JLabel passLabel = new JLabel("PASSWORD:");
 	JLabel repeatPassLabel = new JLabel ("REPEAT PASSWORD:");
-	JTextField username = new JTextField();
-	JTextField firstName = new JTextField();
-	JTextField lastName = new JTextField();
-	JTextField middleInitial = new JTextField();
-	JTextField email = new JTextField();
-	JTextField password = new JTextField();
-	JTextField pass2 = new JTextField();
+	JTextField userNameText = new JTextField();
+	JTextField firstNameText = new JTextField();
+	JTextField lastNameText = new JTextField();
+	JTextField middleInitialText = new JTextField();
+	JTextField emailText = new JTextField();
+	JTextField passwordText = new JTextField();
+	JTextField pass2Text = new JTextField();
 	JButton createButton = new JButton("   CREATE   ");
 	JLabel [] labels = {userLabel,fNLabel, lNLabel, mNLabel, emailLabel, passLabel, repeatPassLabel };
-	JTextField [] textFields = {username, firstName, lastName, middleInitial, email, password, pass2};
+	JTextField [] textFields = {userNameText, firstNameText, lastNameText, middleInitialText, emailText, passwordText, pass2Text};
 	
 	public CreateLogin(){
 		setLayout(new GridBagLayout());
@@ -64,6 +64,13 @@ public class CreateLogin extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		//if createButton is pressed 
+		String userName = userNameText.getText();
+		String firstName = firstNameText.getText();
+		String lastName = lastNameText.getText();
+		String middleInitial = middleInitialText.getText();
+		String email = emailText.getText();
+		String password = passwordText.getText();
+		String pass2 = pass2Text.getText();
 		BudgetApplet.changeScreen("Login");
 		
 	}

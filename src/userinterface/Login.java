@@ -73,7 +73,9 @@ public class Login extends JPanel implements ActionListener{
 		String label = button.getText();
 		//if login is pressed 
 		if (label == "LOGIN"){
-		BudgetApplet.changeScreen("Budget Summary");}
+			String user = username.getText();
+			String pass = password.getText();
+			BudgetApplet.changeScreen("Budget Summary");}
 		//if addNew is pressed 
 		else if (label == "NEW ACCOUNT"){
 		BudgetApplet.changeScreen("Create Login");
