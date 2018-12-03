@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.sql.*;
 
 public class AddAccount extends BasicLayout implements ActionListener{
 
@@ -60,6 +61,34 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		save.addActionListener(this);
 	}
 
+	public void testDB() throws SQLException{
+		Connection conn = get_connection();
+    	Statement stmt = conn.createStatement();
+    	String sql = "SELECT * FROM Users where Username = ?";
+    	PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	String username = "SuperKoolUser91";
+    	prepared_statement.setString(1, username);
+    
+    	ResultSet rs = prepared_statement.executeQuery();
+    	ResultSetMetaData rsmd = rs.getMetaData();
+    	
+    	int columnsNumber = rsmd.getColumnCount();
+    	
+    	while (rs.next()) 
+    	{
+    	    for (int i = 1; i <= columnsNumber; i++) 
+    	    {
+    	        if (i > 1) 
+    	        {
+    	        	System.out.print(",  ");
+    	        }
+    	        String columnValue = rs.getString(i);
+    	        System.out.print(columnValue + " " + rsmd.getColumnName(i));
+    	    }
+    	    System.out.println("");
+    	}
+    	conn.close();
+	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JButton button = (JButton)e.getSource();
@@ -75,8 +104,13 @@ public class AddAccount extends BasicLayout implements ActionListener{
 			String bank = bankText.getText();
 			String accName = acctNameText.getText();
 			String balance = balanceText.getText();
+			try {
+				testDB();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			BudgetApplet.changeScreen("Accounts Summary");
 		}
 		
 	}
-}
+	}

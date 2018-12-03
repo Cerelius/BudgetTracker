@@ -8,10 +8,15 @@ import java.awt.GridLayout;
 import java.awt.Label;
 import java.awt.TextField;
 import java.lang.reflect.Array;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+
 
 public class BasicLayout extends JPanel {
 	
@@ -45,4 +50,15 @@ public class BasicLayout extends JPanel {
 		e.gridheight = 1;
         add(bottom,e);
 		}
+	
+	public Connection get_connection() throws SQLException{
+		MysqlDataSource dataSource = new MysqlDataSource();
+    	dataSource.setUser("jdk8334");
+    	dataSource.setPassword("0RRaL2f9E");
+    	dataSource.setServerName("satoshi.cis.uncw.edu");
+    	dataSource.setDatabaseName("jdk8334");
+    	Connection conn = dataSource.getConnection();
+    	return conn;
+	}
+	
 }
