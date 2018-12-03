@@ -1,0 +1,25 @@
+To USE LINKER IN OTHER UI CLASSES
+(A working example of this is in the AddAccount class)
+
+- class must import java.sql.*
+
+- create method for SQL functionality:
+    public void testDB() throws SQLException{
+        Connection conn = get_connection();
+        Statement stmt = conn.createStatement();
+        String sql = "SELECT * FROM Users where Username = ?";
+        PreparedStatement prepared_statement = conn.prepareStatement(sql);
+        String username = "SuperKoolUser91";
+        prepared_statement.setString(1, username);
+
+        ResultSet rs = prepared_statement.executeQuery();
+        ResultSetMetaData rsmd = rs.getMetaData();
+        conn.close();
+        }
+   
+ - to call SQL method :
+        try {
+          testDB();
+        } catch (SQLException e1) {
+          e1.printStackTrace();
+			
