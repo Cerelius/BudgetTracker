@@ -62,6 +62,7 @@ public class AddAccount extends BasicLayout implements ActionListener{
 	}
 
 	public void testDB() throws SQLException{
+		// this is a dummy method to show how to connect to the database and execute queries
 		Connection conn = get_connection();
     	Statement stmt = conn.createStatement();
     	String sql = "SELECT * FROM Users where Username = ?";
@@ -89,7 +90,19 @@ public class AddAccount extends BasicLayout implements ActionListener{
     	}
     	conn.close();
 	}
-	@Override
+		
+	public void insertAccount(String values) throws SQLException{
+		// execute update to add account into database
+		Connection conn = get_connection();
+    	Statement stmt = conn.createStatement();
+    	String sql = "INSERT INTO UserAccounts (AccountNumber, RoutingNum, Bank_Name, Account_Title, UserName, CardNum, Balance)"
+    			+ "VALUES (" + values + ")";
+    	PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.executeUpdate();
+    	conn.close();
+    	
+	}
+	@Override	
 	public void actionPerformed(ActionEvent e) {
 		JButton button = (JButton)e.getSource();
 		String label = button.getText();
@@ -102,10 +115,16 @@ public class AddAccount extends BasicLayout implements ActionListener{
 			String acctNum = acctNumText.getText();
 			String routNum = routNumText.getText();
 			String bank = bankText.getText();
-			String accName = acctNameText.getText();
+			String acctName = acctNameText.getText();
+			String cardNum = cardNumText.getText();
 			String balance = balanceText.getText();
+			
+			// insert account into database using these values 
+			// still need to get userName from current user somehow 
+			String values =  "\"" + acctNum+ "\", \"" +	routNum+ "\", \"" + bank+ "\", \"" + acctName+ "\", \"" + "SuperKoolUser91"+ "\", \"" + cardNum+ "\", \"" + balance + "\"";
+ 			System.out.println(values);
 			try {
-				testDB();
+				insertAccount(values);
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}

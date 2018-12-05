@@ -22,6 +22,7 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 		// loop to do this for each transaction 
 			JLabel trans_info = new JLabel("11/11/18 Chipotle $21.25 Credit");
 			JButton edit_button = new JButton("Edit");
+			JButton delete_button = new JButton("Delete");
 			edit_button.addActionListener(this);
 			JPanel trans = new JPanel();
 			trans.setLayout(new GridBagLayout());
@@ -37,6 +38,12 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 			d.gridy = 1;
 			d.gridwidth = 1;
 			trans.add(edit_button, d);
+			GridBagConstraints e = new GridBagConstraints();
+			e.fill = GridBagConstraints.HORIZONTAL;
+			e.gridx = 6;
+			e.gridy = 1;
+			e.gridwidth = 1;
+			trans.add(delete_button, e);
 		middle.add(trans);
 		bottom.add(budSum);
 		budSum.addActionListener(this);
@@ -60,6 +67,9 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 			//other if statement to get info about transaction
 			BudgetApplet.changeScreen("Add Transaction");
 			//other stuff to make it edit not add
+		}
+		else if (label == "Delete"){
+			//do stuff, maybe ask if they are sure that they want to delete this transaction
 		}
 		
 	}
