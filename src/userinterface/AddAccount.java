@@ -84,11 +84,11 @@ public class AddAccount extends BasicLayout implements ActionListener{
 				//This means that there was a problem with the input from the user.
 				e2.printImproperInput();
 				e2.showErrorMessage();
+			} finally {
+				//Return to the account summary screen.
+				BudgetApplet.changeScreen("Accounts Summary");
 			}
-
-			BudgetApplet.changeScreen("Accounts Summary");
 		}
-
 	}
 	
 	public void insertAccount(String values) throws SQLException{
@@ -168,31 +168,31 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		// No non-numeric digits
 		// Must not be blank
 		String acctNum = acctNumText.getText();
-		if (acctNum == "")
+		if (isEmpty(acctNum))
 			throw new InvalidAddAccountInputException("Account Number cannot be blank");
-		else if (!isNumeric(acctNum))
-			throw new InvalidAddAccountInputException("Account Numer must be numeric");
+		else if (isNotNumeric(acctNum))
+			throw new InvalidAddAccountInputException("Account Number must be numeric");
 	}
 
 	private void checkRoutingNumber() throws InvalidAddAccountInputException{
 		// No non-numeric digits
 		// Must not be blank
 		String routNum = routNumText.getText();
-		if (routNum == "")
+		if (isEmpty(routNum))
 			throw new InvalidAddAccountInputException("Account Number cannot be blank");
-		else if (isNumeric(routNum))
+		else if (isNotNumeric(routNum))
 			throw new InvalidAddAccountInputException("Account Numer must be numeric");	
 	}
 
 	private void checkBankName() throws InvalidAddAccountInputException {
 		// Must not be blank
-		if (bankText.getText() == "")
+		if (isEmpty(bankText.getText()))
 			throw new InvalidAddAccountInputException("Bank Name cannot be blank");
 	}
 
 	private void checkAccountName() throws InvalidAddAccountInputException {
 		// Must not be blank		
-		if (acctNameText.getText() == "")
+		if (isEmpty(acctNameText.getText()))
 			throw new InvalidAddAccountInputException("Account Name cannot be blank");
 	}
 
@@ -200,9 +200,9 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		// cannot be blank
 		// Must be numeric
 		String cardNum = cardNumText.getText();
-		if (cardNum == "")
+		if (isEmpty(cardNum))
 			throw new InvalidAddAccountInputException("Card Number cannot be blank.");
-		else if (!isNumeric(cardNum))
+		else if (isNotNumeric(cardNum))
 			throw new InvalidAddAccountInputException("Card Number must be numeric.");
 	}
 
@@ -211,22 +211,30 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		// Must be numeric
 		// Must be non-negative
 		String balance = balanceText.getText();
-		if (balance == "")
-			throw new InvalidAddAccountInputException("balance cannot be blank.");
-		else if (!isNumeric(balance))
-			throw new InvalidAddAccountInputException("balance has to be numeric.");
+		if (isEmpty(balance))
+			throw new InvalidAddAccountInputException("Balance cannot be blank.");
+		else if (isNotNumeric(balance))
+			throw new InvalidAddAccountInputException("Balance has to be numeric.");
 		else if (Integer.parseInt(balance) < 0)
-			throw new InvalidAddAccountInputException("balance cannot be negative.");
+			throw new InvalidAddAccountInputException("Balance cannot be negative.");
 	}
 
 	// Checks if a string is numeric or not.
-	private boolean isNumeric(String strNum) {
+	private boolean isNotNumeric(String strNum) {
 		try {
 			double d = Double.parseDouble(strNum);
 		} catch (NumberFormatException | NullPointerException nfe) {
-			return false;
+			return true;
 		}
-		return true;
+		return false;
+	}
+	
+	//Check if a field is empty
+	private boolean isEmpty(String field) {
+		if (field.length() == 0)
+			return true;
+		else
+			return false;
 	}
 	
 //	public void testDB() throws SQLException{
