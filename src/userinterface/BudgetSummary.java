@@ -1,4 +1,3 @@
-package userinterface;
 import java.awt.Button;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -8,10 +7,17 @@ import java.awt.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+import java.sql.*;
+
 
 public class BudgetSummary extends BasicLayout implements ActionListener {
 	
@@ -21,6 +27,53 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 	JButton addTrans = new JButton("Add Transaction");
 	JButton acctSum = new JButton("Accounts Summary");
 	JButton editBud = new JButton("Edit Budget");
+	
+	public static DefaultTableModel build_table_model(ResultSet rs)
+	        throws SQLException 
+	{
+
+	    ResultSetMetaData metaData = rs.getMetaData();
+
+	    // names of columns
+	    Vector<String> columnNames = new Vector<String>();
+	    int columnCount = metaData.getColumnCount();
+	    for (int column = 1; column <= columnCount; column++) 
+	    {
+	        columnNames.add(metaData.getColumnLabel(column));
+	    }
+
+	    // data of the table
+	    Vector<Vector<Object>> data = new Vector<Vector<Object>>();
+	    while (rs.next()) 
+	    {
+	        Vector<Object> vector = new Vector<Object>();
+	        for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) 
+	        {
+	            vector.add(rs.getObject(columnIndex));
+	        }
+	        data.add(vector);
+	    }
+
+	    return new DefaultTableModel(data, columnNames);
+
+	}
+	public JTable create_summary_table() throws SQLException
+	{
+		Connection conn = get_connection();
+		
+		String sql = "Select Category.Category as Category, Category.Amount as Balance, coalesce(Credit.Amount, 0) as Spent, coalesce(Category.Amount - Credit.Amount, Category.Amount) as Remaining from Category left join Credit on Category.Category = Credit.Category where Category.Username = 'NotSoKoolUser11'";
+		
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+
+    	ResultSet rs = prepared_statement.executeQuery();
+    	ResultSetMetaData rsmd = rs.getMetaData();
+    	
+    	ResultSetMetaData metaData = rs.getMetaData();
+
+		JTable table  = new JTable(build_table_model(rs));
+		
+		return table;
+	}
 	
 	public BudgetSummary(){
 		top.setLayout(new GridBagLayout());
@@ -35,7 +88,23 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 		d.weightx = 0.2;
 		top.add(logout);
 		logout.addActionListener(this);
-		middle.add(new Label("*insert table here*"));
+		
+		JTable table = null;
+		try 
+		{
+			table = create_summary_table();
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		//table.setEnabled(false);
+		table.setDefaultEditor(Object.class, null);
+
+		JScrollPane scroll = new JScrollPane(table);
+		middle.add(scroll);  
+		
 		bottom.setLayout(new GridLayout(1,4));
 		bottom.add(transSum);
 		transSum.addActionListener(this);
