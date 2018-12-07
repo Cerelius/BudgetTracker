@@ -31,20 +31,24 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	JButton cancel = new JButton("Cancel");
 	JButton save = new JButton("Save Transaction");
 	
+	JLabel creditIdLabel = new JLabel ("CreditId:");
 	JLabel dateLabel = new JLabel("Date:");
 	JLabel titleLabel = new JLabel("Title:");
 	JLabel locationLabel = new JLabel("Location:");
 	JLabel categoryLabel = new JLabel("Category:");
 	JLabel accountLabel = new JLabel("Account Name:");
 	JLabel amountLabel = new JLabel ("Amount:");
+	JLabel budgetIdLabel = new JLabel ("Budget ID:");
+	JTextField budgetIdText = new JTextField(10);
+	JTextField creditIdText = new JTextField(10);
 	JTextField dateText = new JTextField(10);
 	JTextField titleText = new JTextField(10);
 	JTextField locationText = new JTextField(10);
 	JTextField amountText = new JTextField(10);
 	JComboBox<String> categoryList;
 	JComboBox<String> accountList;
-	JLabel [] labels = {dateLabel, titleLabel, locationLabel,amountLabel};
-	JTextField [] textFields = {dateText, titleText, locationText, amountText};
+	JLabel [] labels = {creditIdLabel, dateLabel, titleLabel, locationLabel, budgetIdLabel, amountLabel};
+	JTextField [] textFields = {creditIdText, dateText, titleText, locationText, budgetIdText, amountText};
 	JLabel [] comboLabels;
 	
 	// Build transaction interface.
@@ -132,7 +136,6 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	private void insertTransaction(String values) throws SQLException{
 		// execute update to add account into database
 		Connection conn = get_connection();
-		Statement stmt = conn.createStatement();
 		String sql = "INSERT INTO Credit VALUES ('CreditID', 'Username', 'Title', 'Budget_ID', 'Category',"
 				+ " 'Description', 'Amount', 'DateCreated', 'AccountNumber')" + "VALUES (" + values + ")";
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
@@ -142,26 +145,25 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 
 	private String buildNewTransactionSignature() throws InvalidAddTransactionInputException{
 		checkAddTransactionInput();
-
-		JTextField dateText = new JTextField(10);
-		JTextField titleText = new JTextField(10);
-		JTextField locationText = new JTextField(10);
-		JTextField amountText = new JTextField(10);
 		
+		String creditId = creditIdText.getText();
 		String date = dateText.getText();
 		String title = titleText.getText();
 		String location = locationText.getText();
 		String amount = amountText.getText();
+		String budgetId = budgetIdText.getText();
 		String category = "Food";
 		String accountName = "accountName";
 		
-		String signature = "\"" + date + "\","
-				+ " \"" +	title+ "\","
+		String signature = "\"" + creditId + "\","
+				+ " \"" + userName + "\","
+				+ " \"" + title + "\","
+				+ " \"" + budgetId + "\","
+				+ " \"" + category + "\","
 				+ " \"" + location + "\","
 				+ " \"" + amount + "\","
-				+ " \"" + "SuperKoolUser91"+ "\","
-				+ " \"" + amount + "\","
-				+ " \"" + accountName + "\"";
+				+ " \"" + date + "\""
+				+ " \"" + accountName + "\",";
 
 		return signature;
 	}	

@@ -95,19 +95,13 @@ public class AddAccount extends BasicLayout implements ActionListener{
 	public void insertAccount(String values) throws SQLException{
 		// execute update to add account into database
 		Connection conn = get_connection();
-		Statement stmt = conn.createStatement();
-		String sql = "INSERT INTO UserAccounts (AccountNumber, RoutingNum, Bank_Name, Account_Title, UserName, CardNum, Balance)"
-				+ "VALUES (" + values + ")";
+		String sql = "INSERT INTO UserAccounts (AccountNumber, RoutingNum, Bank_Name, "
+				+ "Account_Title, UserName, CardNum, Balance) VALUES (" + values + ")";
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
 		prepared_statement.executeUpdate();
 		conn.close();
 	}
 
-	/** InvalidAddAccountInputException
-	 * This exception is thrown when there is invalid input in the 
-	 * 
-	 *
-	 */
 	public class InvalidAddAccountInputException extends Exception {
 		String cause;
 
@@ -144,7 +138,7 @@ public class AddAccount extends BasicLayout implements ActionListener{
 				+ " \"" +	routNum+ "\","
 				+ " \"" + bank+ "\","
 				+ " \"" + acctName+ "\","
-				+ " \"" + "SuperKoolUser91"+ "\","
+				+ " \"" + userName+ "\","
 				+ " \"" + cardNum+ "\","
 				+ " \"" + balance + "\"";
 
@@ -237,34 +231,4 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		else
 			return false;
 	}
-	
-//	public void testDB() throws SQLException{
-//	// this is a dummy method to show how to connect to the database and execute queries
-//	Connection conn = get_connection();
-//	Statement stmt = conn.createStatement();
-//	String sql = "SELECT * FROM Users where Username = ?";
-//	PreparedStatement prepared_statement = conn.prepareStatement(sql);
-//	String username = "SuperKoolUser91";
-//	prepared_statement.setString(1, username);
-//
-//	ResultSet rs = prepared_statement.executeQuery();
-//	ResultSetMetaData rsmd = rs.getMetaData();
-//
-//	int columnsNumber = rsmd.getColumnCount();
-//
-//	while (rs.next()) 
-//	{
-//		for (int i = 1; i <= columnsNumber; i++) 
-//		{
-//			if (i > 1) 
-//			{
-//				System.out.print(",  ");
-//			}
-//			String columnValue = rs.getString(i);
-//			System.out.print(columnValue + " " + rsmd.getColumnName(i));
-//		}
-//		System.out.println("");
-//	}
-//	conn.close();
-//}
 }
