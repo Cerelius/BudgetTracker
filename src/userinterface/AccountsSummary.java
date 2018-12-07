@@ -51,7 +51,6 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 			String acct_number = account.getNum();
 			String rout_number = account.getRout();
 			String acct_string = account.getInfo();
-			// put this in loop and do it for each account in DB
 			JLabel acct_info = new JLabel(acct_string);
 			JButton edit_button = new JButton("Edit");
 			JButton delete_button = new JButton("Delete");
@@ -76,24 +75,28 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 				ArrayList<Account> acc;
 				public void actionPerformed(ActionEvent e){
 					//ask user in popup if they really want to delete this account
-					//method to delete this account from the database
-					try {
-						deleteAccount(acct_number,rout_number);
-						deleteLinkedTrans(acct_number,rout_number);
-						//send user alert that account was deleted
-						JOptionPane.showMessageDialog(null,"Account: "+ acct_string + "\n and linked transactions deleted ");
-						middle.removeAll();
+					Object [] options = {"Yes","No"};
+					int n = JOptionPane.showOptionDialog(null, "Are you sure you want to delete this Account?", 
+							"Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null, options, options[0]);
+					//if user selects YES, delete account and all linked transactions and then send message that account has been deleted
+					if (n == JOptionPane.YES_OPTION){
 						try {
-							acc = getAccounts();
+							deleteAccount(acct_number,rout_number);
+							deleteLinkedTrans(acct_number,rout_number);
+							//send user alert that account was deleted
+							JOptionPane.showMessageDialog(null,"Account: "+ acct_string + "\n and linked transactions deleted ");
+							middle.removeAll();
+							try {
+								acc = getAccounts();
+							} catch (SQLException e1) {
+									e1.printStackTrace();
+							}
+							createMiddle(acc);
 						} catch (SQLException e1) {
-								e1.printStackTrace();
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null,"Problem deleteing account from the database");
 						}
-						createMiddle(acc);
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-						JOptionPane.showMessageDialog(null,"Problem deleteing account from the database");
 					}
-					
 					}
 			});
 			JPanel acct = new JPanel();
@@ -217,3 +220,5 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 		
 	}
 }
+
+

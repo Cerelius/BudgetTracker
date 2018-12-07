@@ -61,21 +61,27 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 			delete_button.addActionListener(new ActionListener(){
 				ArrayList<Transaction> trans_list;
 				public void actionPerformed(ActionEvent e){
-					//ask user in popup if they really want to delete this transaction
-					try {
-						deleteTransaction(tran.getCreditID());
-						JOptionPane.showMessageDialog(null,"Transaction: "+ tran.getTransString() + " deleted ");		
-						middle.removeAll();
+					//ask user if they are sure that they want to delete the transaction 
+					Object [] options = {"Yes","No"};
+					int n = JOptionPane.showOptionDialog(null, "Are you sure you want to delete this Transaction?", 
+							"Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null, options, options[0]);
+					//if user selects YES, delete transaction and then send message that Transaction has been deleted
+					if (n == JOptionPane.YES_OPTION){
 						try {
-							trans_list = getTransactions();
+							deleteTransaction(tran.getCreditID());
+							JOptionPane.showMessageDialog(null,"Transaction: "+ tran.getTransString() + " deleted ");		
+							middle.removeAll();
+							try {
+								trans_list = getTransactions();
+							} catch (SQLException e1) {
+									e1.printStackTrace();
+							}
+							createMiddle(trans_list);
+							
 						} catch (SQLException e1) {
-								e1.printStackTrace();
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null,"Problem deleting transaction from the database");
 						}
-						createMiddle(trans_list);
-						
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-						JOptionPane.showMessageDialog(null,"Problem deleting transaction from the database");
 					}
 				}
 			});
