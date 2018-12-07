@@ -21,7 +21,7 @@ public class BudgetApplet {
 	static JPanel screens;
 	JPanel loginScreen = new Login();
 	JPanel budgetSummary = new BudgetSummary();
-	JPanel accountsSummary = new AccountsSummary();
+	public JPanel accountsSummary = new AccountsSummary();
 	JPanel addAccount = new AddAccount();
 	JPanel createLogin = new CreateLogin();
 	JPanel transactionSummary = new TransactionSummary();
@@ -48,12 +48,14 @@ public class BudgetApplet {
 		CardLayout cl = (CardLayout)(screens.getLayout());
 		cl.show(screens, screen_name);
 	}
+	
 	private static void createAndShowGUI(){
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		BudgetApplet bud = new BudgetApplet();
 		bud.addContentToPane(frame.getContentPane());
 		frame.pack();
+		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
 	

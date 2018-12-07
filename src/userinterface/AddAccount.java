@@ -75,6 +75,7 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		if (label == "Save Account"){	
 
 			try {
+				System.out.println(userName);
 				insertAccount(buildNewAccountSignature());
 			} catch (SQLException e1) {
 				//This is a generic exception that indicates there was a problem with insertAccount.

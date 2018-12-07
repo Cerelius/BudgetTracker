@@ -82,9 +82,9 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 					if (n == JOptionPane.YES_OPTION){
 						try {
 							deleteAccount(acct_number,rout_number);
-							deleteLinkedTrans(acct_number,rout_number);
 							//send user alert that account was deleted
 							JOptionPane.showMessageDialog(null,"Account: "+ acct_string + "\n and linked transactions deleted ");
+							//BudgetApplet.screens.repaint();
 							middle.removeAll();
 							try {
 								acc = getAccounts();
@@ -164,24 +164,6 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
     	prepared_statement.executeUpdate();
     	conn.close();
 	}
-
-	public void deleteLinkedTrans(String acct_num, String rout_num) throws SQLException{
-		Connection conn = get_connection();
-		String sql = "SELECT AccountNumber from UserAccounts WHERE AccountNumber = ? AND RoutingNum = ?; ";
-    	PreparedStatement prepared_statement = conn.prepareStatement(sql);
-    	prepared_statement.setString(1, acct_num);
-    	prepared_statement.setString(2, rout_num);
-    	ResultSet rs = prepared_statement.executeQuery();
-    	ResultSetMetaData rsmd = rs.getMetaData();
-    	int columnsNumber = rsmd.getColumnCount();
-    	
-    	while (rs.next()) {
-    	    for (int i = 1; i <= columnsNumber; i++) 
-    	    {
-    		System.out.println(rs.getString(i));
-    	    }
-    	}
-	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -220,5 +202,4 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 		
 	}
 }
-
 

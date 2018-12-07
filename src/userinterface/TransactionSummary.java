@@ -70,6 +70,7 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 						try {
 							deleteTransaction(tran.getCreditID());
 							JOptionPane.showMessageDialog(null,"Transaction: "+ tran.getTransString() + " deleted ");		
+							//BudgetApplet.screens.repaint();
 							middle.removeAll();
 							try {
 								trans_list = getTransactions();
@@ -77,6 +78,8 @@ public class TransactionSummary extends BasicLayout implements ActionListener {
 									e1.printStackTrace();
 							}
 							createMiddle(trans_list);
+							BudgetApplet.changeScreen("Budget Summary");
+							BudgetApplet.changeScreen("Transaction Summary");
 							
 						} catch (SQLException e1) {
 							e1.printStackTrace();

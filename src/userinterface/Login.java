@@ -9,11 +9,20 @@ import java.awt.Label;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.sql.SQLException;
+//import BasicLayout;
+
+import userinterface.CreateLogin.InvalidAddUserInputException;
 
 
 public class Login extends JPanel implements ActionListener{
@@ -75,12 +84,97 @@ public class Login extends JPanel implements ActionListener{
 		if (label == "LOGIN"){
 			String user = username.getText();
 			String pass = password.getText();
-			BudgetApplet.changeScreen("Budget Summary");}
+			
+			try {
+				boolean success = doLogin(buildNewLoginSignature());
+				if  (success == false) {
+					JOptionPane.showMessageDialog(null, "Invalid Username and/or Password");
+				}
+				else if (success){
+					BasicLayout.setUserName(user);
+					BudgetApplet.changeScreen("Budget Summary");
+				}
+			} catch (SQLException e1) {
+				//This is a generic exception that indicates there was a problem with the login.
+				e1.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Invalid Username and/or Password");
+			} catch (InvalidLoginException e2) {
+				//This means that there was a problem with the input from the user.
+				e2.printImproperInput();
+				e2.showErrorMessage();
+			} finally {
+				//Return to the login screen.
+			}
+			
+			
+		}
+		
 		//if addNew is pressed 
-		else if (label == "NEW ACCOUNT"){
+		if (label == "NEW ACCOUNT"){
 		BudgetApplet.changeScreen("Create Login");
+		}
+	}
+	
+	public boolean doLogin(String[] values) throws SQLException{
+		// execute update to add account into database
+		Connection conn = BasicLayout.get_connection();
+		Statement stmt = conn.createStatement();
+		String sql = "SELECT 'UserCorrect' FROM Users WHERE Username = ? AND Password = ?";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+		prepared_statement.setString(1, values[0]);
+		prepared_statement.setString(2, values[1]);
+		ResultSet rs =prepared_statement.executeQuery();
+		rs.next();
+		try{
+			String r = rs.getString(1);
+			conn.close();
+			return true;
+		} catch (java.sql.SQLException E1){
+			conn.close();
+			return false;
 		}
 		
 		
+		
+	}
+	
+	public String [] buildNewLoginSignature() throws InvalidLoginException {
+		checkLoginInput();
+
+		String user = username.getText();
+		String pass = password.getText();
+
+		String[] signature = {user,pass};
+
+		return signature;
+	}
+	
+	private void checkLoginInput() throws InvalidLoginException {
+		// Must not be blank
+		if ( isEmpty(username.getText()) || isEmpty(password.getText()) )
+			throw new InvalidLoginException("Username and password must not be blank");
+	}
+	
+	public class InvalidLoginException extends Exception {
+		String cause;
+
+		public InvalidLoginException(String cause) {
+			this.cause = cause;
+		}
+
+		public void printImproperInput() {
+			System.out.println(cause);
+		}
+
+		public void showErrorMessage() {
+			JOptionPane.showMessageDialog(null, cause);
+		}
+	}
+	
+	private boolean isEmpty(String field) {
+		if (field.length() == 0)
+			return true;
+		else
+			return false;
 	}
 }

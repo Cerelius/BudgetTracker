@@ -23,6 +23,7 @@ public class BasicLayout extends JPanel {
 	JPanel top = new JPanel();
 	JPanel middle = new JPanel();
 	JPanel bottom = new JPanel();
+	static String userName;
 	
 	public BasicLayout() {
 		setLayout(new GridBagLayout());
@@ -51,7 +52,16 @@ public class BasicLayout extends JPanel {
         add(bottom,e);
 		}
 	
-	public Connection get_connection() throws SQLException{
+	
+	public static void setUserName(String user){
+		userName = user;
+	}
+	
+	public String getUserName(){
+		return userName;
+	}
+	
+	public  static Connection get_connection() throws SQLException{
 		MysqlDataSource dataSource = new MysqlDataSource();
     	dataSource.setUser("jdk8334");
     	dataSource.setPassword("0RRaL2f9E");
