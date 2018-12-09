@@ -24,7 +24,6 @@ import javax.swing.JTable;
 
 public class EditBudget extends BasicLayout implements ActionListener 
 {
-
 	TextField add_category = new TextField();
 	TextField add_amount = new TextField();
 	JLabel errors = new JLabel();
@@ -74,6 +73,7 @@ public class EditBudget extends BasicLayout implements ActionListener
         	panel.add(category_input);
         	
     	}
+    	conn.close();
 	}
 	
 	public void add_budget(String category, float amount) throws SQLException
@@ -102,6 +102,7 @@ public class EditBudget extends BasicLayout implements ActionListener
 		prepared_statement.setString(3, getUserName());
 		prepared_statement.setFloat(4, amount);
     	prepared_statement.executeUpdate();
+    	conn.close();
     	
 	}
 	
@@ -116,6 +117,7 @@ public class EditBudget extends BasicLayout implements ActionListener
 		prepared_statement.setString(4, getUserName());
 		//System.out.println(prepared_statement);
     	prepared_statement.executeUpdate();
+    	conn.close();
 	}
 	
 	public void update_ui()
@@ -148,21 +150,25 @@ public class EditBudget extends BasicLayout implements ActionListener
 		bottom.add(amount_label);
 		bottom.add(add_amount);
 		bottom.add(refresh);
-		refresh.addActionListener(this);
+		
 		
 		bottom.add(add);
-		add.addActionListener(this);
+		
 		
 		top.add(header);
 		bottom.add(cancel);
-		cancel.addActionListener(this);
+		
 		bottom.add(save);
-		save.addActionListener(this);
+		
 	}
 	
 	public EditBudget()
 	{
 		create_ui();
+		add.addActionListener(this);
+		cancel.addActionListener(this);
+		save.addActionListener(this);
+		refresh.addActionListener(this);
 	}
 
 	@Override
@@ -261,9 +267,6 @@ public class EditBudget extends BasicLayout implements ActionListener
 					e1.printStackTrace();
 				}
 				
-				update_ui();
-				BudgetApplet.changeScreen("Budget Summary");
-				BudgetApplet.changeScreen("Edit Budget");
 			}
 		}
 		else if (label == "Refresh")

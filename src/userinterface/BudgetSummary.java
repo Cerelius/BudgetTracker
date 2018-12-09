@@ -21,8 +21,8 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 
 
-public class BudgetSummary extends BasicLayout implements ActionListener{
-	
+public class BudgetSummary extends BasicLayout implements ActionListener
+{
 	JLabel header = new JLabel("Budget Summary");
 	JButton logout = new JButton("Logout");
 	JButton transSum = new JButton("Transaction Summary");
@@ -76,6 +76,7 @@ public class BudgetSummary extends BasicLayout implements ActionListener{
     	ResultSetMetaData metaData = rs.getMetaData();
 
 		JTable table  = new JTable(build_table_model(rs));
+		conn.close();
 		
 		return table;
 	}
@@ -119,23 +120,25 @@ public class BudgetSummary extends BasicLayout implements ActionListener{
 		JScrollPane scroll = new JScrollPane(table);
 		middle.add(scroll);  
 		middle.add(refresh);
-		refresh.addActionListener(this);
+		
 		
 		bottom.setLayout(new GridLayout(1,4));
 		bottom.add(transSum);
-		transSum.addActionListener(this);
 		bottom.add(addTrans);
-		addTrans.addActionListener(this);
 		bottom.add(acctSum);
-		acctSum.addActionListener(this);
 		bottom.add(editBud);
-		editBud.addActionListener(this);
+		
 	}
 	
 
 	public BudgetSummary()
 	{
 		create_ui();
+		transSum.addActionListener(this);
+		addTrans.addActionListener(this);
+		acctSum.addActionListener(this);
+		editBud.addActionListener(this);
+		refresh.addActionListener(this);
 	}
 	
 	@Override
