@@ -1,4 +1,3 @@
-package userinterface;
 import java.applet.Applet;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -18,18 +17,18 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import java.sql.SQLException;
 //import BasicLayout;
 
-import userinterface.CreateLogin.InvalidAddUserInputException;
 
 
 public class Login extends JPanel implements ActionListener{
 	JLabel userLabel = new JLabel("USERNAME:");
 	JLabel passLabel = new JLabel("PASSWORD:");
 	JTextField username = new JTextField();
-	JTextField password = new JTextField();
+	JTextField password = new JPasswordField();
 	JButton loginButton = new JButton("LOGIN");
 	JButton addNew = new JButton("NEW ACCOUNT");
 	
