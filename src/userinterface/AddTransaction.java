@@ -152,8 +152,8 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 		String location = locationText.getText();
 		String amount = amountText.getText();
 		String budgetId = budgetIdText.getText();
-		String category = "Food";
-		String accountName = "accountName";
+		String category = categoryList.getItemAt(categoryList.getSelectedIndex());
+		String accountName = accountList.getItemAt(accountList.getSelectedIndex());
 		
 		String signature = "\"" + creditId + "\","
 				+ " \"" + userName + "\","
@@ -174,12 +174,24 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	 * @throws inputInvalidException - There was a problem with the field information, the message defines what is wrong.  
 	 */
 	public void checkAddTransactionInput() throws InvalidAddTransactionInputException {
+		checkCreditID();
 		checkDate();
 		checkTitle();
 		checkLocation();
 		checkAmount();
+		checkBudgetID();
 		checkCategory();
 		checkAccountName();
+	}
+	
+	private void checkCreditID() throws InvalidAddTransactionInputException {
+		// Must not be blank
+		// Must be numeric
+		String creditId = creditIdText.getText();
+		if (isEmpty(creditId))
+			throw new InvalidAddTransactionInputException("CreditId cannot be blank");
+		else if (isNotNumeric(creditId))
+			throw new InvalidAddTransactionInputException("CreditId must be numeric");
 	}
 	
 	private void checkDate() throws InvalidAddTransactionInputException {
@@ -221,18 +233,26 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 			throw new InvalidAddTransactionInputException("Amount must be postive");
 	}
 
+	private void checkBudgetID() throws InvalidAddTransactionInputException {
+		// Must not be blank
+		// Must be numeric
+		String budgetId = budgetIdText.getText();
+		if (isEmpty(budgetId))
+			throw new InvalidAddTransactionInputException("budgetId cannot be blank");
+		else if (isNotNumeric(budgetId))
+			throw new InvalidAddTransactionInputException("budgetId must be numeric");
+	}
+	
 	private void checkCategory() throws InvalidAddTransactionInputException {
 		// Must not be blank
-		// TODO: Add category String.
-		String category = " ";
+		String category = categoryList.getItemAt(categoryList.getSelectedIndex());
 		if (isEmpty(category))
 			throw new InvalidAddTransactionInputException("Category cannot be blank.");
 	}
 
 	private void checkAccountName() throws InvalidAddTransactionInputException {
 		// Must not be blank
-		// TODO: Add account name string
-		String accountName = " ";
+		String accountName = accountList.getItemAt(accountList.getSelectedIndex());
 		if (isEmpty(accountName))
 			throw new InvalidAddTransactionInputException("Account Name cannot be blank.");
 	}
