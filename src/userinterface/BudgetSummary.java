@@ -1,4 +1,3 @@
-package userinterface;
 import java.awt.Button;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -7,6 +6,8 @@ import java.awt.Label;
 import java.awt.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -20,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 
 
-public class BudgetSummary extends BasicLayout implements ActionListener {
+public class BudgetSummary extends BasicLayout implements ActionListener{
 	
 	JLabel header = new JLabel("Budget Summary");
 	JButton logout = new JButton("Logout");
@@ -28,6 +29,7 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 	JButton addTrans = new JButton("Add Transaction");
 	JButton acctSum = new JButton("Accounts Summary");
 	JButton editBud = new JButton("Edit Budget");
+	JButton refresh = new JButton("Refresh");
 	
 	public static DefaultTableModel build_table_model(ResultSet rs)
 	        throws SQLException 
@@ -61,10 +63,12 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 	public JTable create_summary_table() throws SQLException
 	{
 		Connection conn = get_connection();
-		
-		String sql = "Select Category.Category as Category, Category.Amount as Balance, coalesce(Credit.Amount, 0) as Spent, coalesce(Category.Amount - Credit.Amount, Category.Amount) as Remaining from Category left join Credit on Category.Category = Credit.Category where Category.Username = 'NotSoKoolUser11'";
+		String sql = "Select temp.Category as Category, temp.Amount as Balance, coalesce(Credit.Amount, 0) as Spent, coalesce(temp.Amount - Credit.Amount, temp.Amount) as Remaining from (select * from Category where Username = ?) temp left join Credit on Credit.Username = ? and temp.Username = ? and Credit.Budget_ID = temp.Budget_ID and Credit.Category = temp.Category ";
 		
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+		prepared_statement.setString(1, getUserName());
+		prepared_statement.setString(2, getUserName());
+		prepared_statement.setString(3, getUserName());
 
     	ResultSet rs = prepared_statement.executeQuery();
     	ResultSetMetaData rsmd = rs.getMetaData();
@@ -76,7 +80,16 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 		return table;
 	}
 	
-	public BudgetSummary(){
+	public void update_ui()
+	{
+		top.removeAll();
+		middle.removeAll();
+		bottom.removeAll();
+		create_ui();
+	}
+	
+	public void create_ui()
+	{
 		top.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx=0;
@@ -105,6 +118,8 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 
 		JScrollPane scroll = new JScrollPane(table);
 		middle.add(scroll);  
+		middle.add(refresh);
+		refresh.addActionListener(this);
 		
 		bottom.setLayout(new GridLayout(1,4));
 		bottom.add(transSum);
@@ -115,6 +130,12 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 		acctSum.addActionListener(this);
 		bottom.add(editBud);
 		editBud.addActionListener(this);
+	}
+	
+
+	public BudgetSummary()
+	{
+		create_ui();
 	}
 	
 	@Override
@@ -140,6 +161,14 @@ public class BudgetSummary extends BasicLayout implements ActionListener {
 		//if logout is pressed 
 		else if (label == "Logout"){
 			BudgetApplet.changeScreen("Login");
+		}
+		
+		else if (label == "Refresh"){
+			update_ui();
+			BudgetApplet.changeScreen("Edit Budget");
+			BudgetApplet.changeScreen("Budget Summary");
+
+			
 		}
 
 		
