@@ -148,7 +148,7 @@ public class EditBudget extends BasicLayout implements ActionListener
 		bottom.add(amount_label);
 		bottom.add(add_amount);
 		bottom.add(refresh);
-		
+		refresh.addActionListener(this);
 		
 		bottom.add(add);
 		add.addActionListener(this);
@@ -261,10 +261,8 @@ public class EditBudget extends BasicLayout implements ActionListener
 					e1.printStackTrace();
 				}
 				
-				top.removeAll();
-				middle.removeAll();
-				bottom.removeAll();
-				create_ui();
+				update_ui();
+				BudgetApplet.changeScreen("Budget Summary");
 				BudgetApplet.changeScreen("Edit Budget");
 			}
 		}
