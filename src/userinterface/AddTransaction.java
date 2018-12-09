@@ -1,6 +1,7 @@
 package userinterface;
 import java.applet.Applet;
 import java.awt.Button;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -10,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
@@ -39,16 +41,16 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	JLabel accountLabel = new JLabel("Account Name:");
 	JLabel amountLabel = new JLabel ("Amount:");
 	JLabel budgetIdLabel = new JLabel ("Budget ID:");
-	JTextField budgetIdText = new JTextField(10);
-	JTextField creditIdText = new JTextField(10);
-	JTextField dateText = new JTextField(10);
-	JTextField titleText = new JTextField(10);
-	JTextField locationText = new JTextField(10);
-	JTextField amountText = new JTextField(10);
-	JComboBox<String> categoryList;
-	JComboBox<String> accountList;
+	static JTextField budgetIdText = new JTextField(10);
+	static JTextField creditIdText = new JTextField(10);
+	static JTextField dateText = new JTextField(10);
+	static JTextField titleText = new JTextField(10);
+	static JTextField locationText = new JTextField(10);
+	static JTextField amountText = new JTextField(10);
+	static JComboBox<String> categoryList;
+	static JComboBox<String> accountList;
 	JLabel [] labels = {creditIdLabel, dateLabel, titleLabel, locationLabel, budgetIdLabel, amountLabel};
-	JTextField [] textFields = {creditIdText, dateText, titleText, locationText, budgetIdText, amountText};
+	static JTextField [] textFields = {creditIdText, dateText, titleText, locationText, budgetIdText, amountText};
 	JLabel [] comboLabels;
 	
 	// Build transaction interface.
@@ -133,11 +135,48 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 		}
 	}
 
+	public static void populate(String tranID){
+		try{
+			String [] tran_info = getTranInfo(tranID);
+			for (int i=0; i<6; i++){
+				textFields[i].setText(tran_info[i]);
+			}
+			System.out.println(tran_info[7]);
+			for (Component i: categoryList.getComponents()){
+				System.out.println(i.getName());
+			}
+		}
+		catch (SQLException e1){
+			e1.printStackTrace();
+			System.out.println("error");
+		}
+	}
+	
+	public static String[] getTranInfo(String tranID )throws SQLException{
+		Connection conn = get_connection();
+		String sql = "SELECT CreditID, DateCreated, Title, Description, Budget_ID, Amount, Category, AccountNumber FROM Credit WHERE CreditID =?;";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.setString(1, tranID);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	rs.next();
+    	String sql2 = "Select Account_Title from UserAccounts where AccountNumber = ?;";
+		PreparedStatement prepared_statement2 = conn.prepareStatement(sql2);
+    	prepared_statement2.setString(1, rs.getString(8));
+    	ResultSet rs2 = prepared_statement2.executeQuery();
+    	rs2.next();
+    	String acct_name = rs2.getString(1);
+ 	    	 	
+    	String [] tranInfo = { rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6), rs.getString(7), acct_name};
+    	conn.close();
+		return tranInfo;
+	}
+	
+	
 	private void insertTransaction(String values) throws SQLException{
 		// execute update to add account into database
 		Connection conn = get_connection();
-		String sql = "INSERT INTO Credit VALUES ('CreditID', 'Username', 'Title', 'Budget_ID', 'Category',"
-				+ " 'Description', 'Amount', 'DateCreated', 'AccountNumber')" + "VALUES (" + values + ")";
+		String sql = "INSERT INTO Credit (CreditID, Username, Title, Budget_ID, Category,"
+				+ " Description, Amount,AccountNumber)" + "VALUES (" + values + ")";
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
 		prepared_statement.executeUpdate();
 		conn.close();
@@ -161,7 +200,7 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 				+ " \"" + budgetId + "\","
 				+ " \"" + category + "\","
 				+ " \"" + location + "\","
-				+ " \"" + amount + "\","
+				+ amount + ","
 				+ " \"" + date + "\""
 				+ " \"" + accountName + "\",";
 
