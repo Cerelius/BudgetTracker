@@ -27,17 +27,20 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 	JLabel header = new JLabel("Payment Accounts");
 	JButton addAcct = new JButton("Add Account");
 	JButton budSum = new JButton("Budget Summary");
+	JButton load_button = new JButton("Load Accounts");
 	ArrayList<Account> acct_list;
 	
+	/** AccountsSummary
+	 * The Accounts Summary screen displays the name and bank of each of the users accounts
+	 * and allows the user to edit or delete each account 
+	 */
 	public AccountsSummary(){
 		top.add(header);
+		// set middle of screen to start with a load button
+		// when pressed, this button will query the database for accounts and display them on the screen  
 		middle.setLayout(new GridBagLayout());
-		try {
-			acct_list = getAccounts();
-		} catch (SQLException e1) {
-				e1.printStackTrace();
-		}
-		createMiddle(acct_list);
+		callCreateMiddle();
+		// add buttons to bottom of the screen in order to navigat to other screens 
 		bottom.setLayout(new GridLayout(1,2));
 		bottom.add(budSum);
 		budSum.addActionListener(this);
@@ -45,32 +48,43 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 		addAcct.addActionListener(this);
 	}
 	
+	public void callCreateMiddle(){
+		middle.removeAll();
+		try {
+			acct_list = getAccounts();
+		} catch (SQLException e1) {
+				e1.printStackTrace();
+		}
+		createMiddle(acct_list);
+		updateUI();
+	}
+	
+	/** createMiddle
+	 * this method takes in a list of account objects and displays them along with
+	 * edit and delete buttons for each
+	 */
 	public void createMiddle( ArrayList<Account> acct_list){
 		int row = 1;
 		for (Account account : acct_list){
+			//get attributes from account object
 			String acct_number = account.getNum();
 			String rout_number = account.getRout();
 			String acct_string = account.getInfo();
 			JLabel acct_info = new JLabel(acct_string);
+			//create edit and delete buttons
 			JButton edit_button = new JButton("Edit");
 			JButton delete_button = new JButton("Delete");
+			// if edit button is pressed, populate add account screen with account's info 
 			edit_button.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
-					//method to populate add account screen with this account's data
-					//AddAccount.populate();
+					// reset current screen to load button for the next time you return to this screen 
+					middle.removeAll();
+					middle.add(load_button);
+					AddAccount.populate(acct_number, rout_number);
 					BudgetApplet.changeScreen("Add Account");
 					}
-				/*
-				 * String acct_number = account.getNum();
-				 * String rout_number = account.getRout();
-				 * populate(acct_number, rout_number)
-				 * query for account info from id
-				 * set text fields to info from query
-				 * 
-				 */
-				
 			});
-			
+			// if the delete button is pressed, ask user "are you sure" and then delete account from the database 
 			delete_button.addActionListener(new ActionListener(){
 				ArrayList<Account> acc;
 				public void actionPerformed(ActionEvent e){
@@ -84,7 +98,7 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 							deleteAccount(acct_number,rout_number);
 							//send user alert that account was deleted
 							JOptionPane.showMessageDialog(null,"Account: "+ acct_string + "\n and linked transactions deleted ");
-							//BudgetApplet.screens.repaint();
+							//reload screen so that the deleted account no longer is visible 
 							middle.removeAll();
 							try {
 								acc = getAccounts();
@@ -92,6 +106,8 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 									e1.printStackTrace();
 							}
 							createMiddle(acc);
+							BudgetApplet.changeScreen("Budget Summary");
+							BudgetApplet.changeScreen("Accounts Summary");
 						} catch (SQLException e1) {
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null,"Problem deleteing account from the database");
@@ -99,6 +115,7 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 					}
 					}
 			});
+			// add account info, edit button and delete button to JPanel acct
 			JPanel acct = new JPanel();
 			acct.setLayout(new GridBagLayout());
 			GridBagConstraints c = new GridBagConstraints();
@@ -119,7 +136,7 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 			e.gridy = 1;
 			e.gridwidth = 1;
 			acct.add(delete_button, e);
-			
+			// add acct to middle JPanel and increment row so that the next account appears below 
 			GridBagConstraints f = new GridBagConstraints();
 			f.fill = GridBagConstraints.HORIZONTAL;
 			f.gridx = 1;
@@ -130,16 +147,22 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 		}
 		}
 	
+	/** getAccounts
+	 * this method queries the database for all accounts from the user and returns
+	 * an array list of account objects
+	 */
 	public ArrayList<Account> getAccounts() throws SQLException{
+		//create connection and query for all account objects from current user 
 		Connection conn = get_connection();
 		Statement stmt = conn.createStatement();
-		String sql = "SELECT * FROM UserAccounts WHERE Username = \"SuperKoolUser91\";";
+		String sql = "SELECT * FROM UserAccounts WHERE Username = ?;";
     	PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.setString(1, userName);
     	ResultSet rs = prepared_statement.executeQuery();
     	ResultSetMetaData rsmd = rs.getMetaData();
     	
     	ArrayList <Account> accts = new ArrayList<>();
-    	
+    	// for each result, create an account object and add it to the array list
     	while (rs.next()) {
     		String acct_num = rs.getString(1);
     		String rout_num = rs.getString(2);
@@ -152,11 +175,13 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
     	return accts;
 	}
 	
+	/** deleteAccount
+	 * this method executes the database update to delete an account given its 
+	 * account number and routing number 
+	 */
 	public void deleteAccount(String acct_num, String rout_num) throws SQLException{
-		// execute update to delete account from database
 		Connection conn = get_connection();
     	Statement stmt = conn.createStatement();
-    	//insert query here
     	String sql = "DELETE FROM UserAccounts WHERE AccountNumber = ? AND RoutingNum = ?;";
     	PreparedStatement prepared_statement = conn.prepareStatement(sql);
     	prepared_statement.setString(1, acct_num);
@@ -169,17 +194,26 @@ public class AccountsSummary extends BasicLayout implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		JButton button = (JButton)e.getSource();
 		String label = button.getText();
-		//if budSum is pressed
+		//if budSum is pressed, reset screen to the load button and change screens 
 		if (label == "Budget Summary"){
+			middle.removeAll();
+			middle.add(load_button);
 			BudgetApplet.changeScreen("Budget Summary");
 		}
-		//if addAcct is pressed 
+		//if addAcct is pressed, reset this screen to the load button and change screens
 		if (label == "Add Account"){
+			middle.removeAll();
+			middle.add(load_button);
 			BudgetApplet.changeScreen("Add Account");
 		}
 		
 	}
 	
+	/** Account
+	 * this class represents the necessary data about an account, its account number, 
+	 * routing number, and a string to describe the account 
+	 * The account number and routing number can be used later to access the account in the database
+	 */
 	public class Account{
 		private String account_number;
 		private String routing_number;

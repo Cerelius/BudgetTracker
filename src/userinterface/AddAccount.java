@@ -14,6 +14,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import userinterface.AddTransaction.InvalidAddTransactionInputException;
+
 import java.sql.*;
 
 public class AddAccount extends BasicLayout implements ActionListener{
@@ -28,14 +31,14 @@ public class AddAccount extends BasicLayout implements ActionListener{
 	JLabel acctNameLabel = new JLabel("Account Name:");
 	JLabel cardNumLabel = new JLabel("Card Number:");
 	JLabel balanceLabel = new JLabel("Balance:");
-	JTextField acctNumText = new JTextField(10);
-	JTextField routNumText = new JTextField(10);
-	JTextField bankText = new JTextField(10);
-	JTextField acctNameText = new JTextField(10);
-	JTextField cardNumText = new JTextField(10);
-	JTextField balanceText = new JTextField(10);
+	static JTextField acctNumText = new JTextField(15);
+	static JTextField routNumText = new JTextField(15);
+	static JTextField bankText = new JTextField(15);
+	static JTextField acctNameText = new JTextField(15);
+	static JTextField cardNumText = new JTextField(15);
+	static JTextField balanceText = new JTextField(15);
 	JLabel [] labels = {acctNumLabel, routNumLabel, bankLabel, acctNameLabel, cardNumLabel, balanceLabel};
-	JTextField [] textFields = {acctNumText, routNumText, bankText, acctNameText, cardNumText, balanceText};
+	static JTextField [] textFields = {acctNumText, routNumText, bankText, acctNameText, cardNumText, balanceText};
 
 	// Build the interface.
 	public AddAccount(){
@@ -75,8 +78,28 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		if (label == "Save Account"){	
 
 			try {
-				System.out.println(userName);
-				insertAccount(buildNewAccountSignature());
+				String acctNum = acctNumText.getText();
+				String routNum = routNumText.getText();
+				//method to see if that account exists
+				if (AccountExists(acctNum,routNum) == true){
+					//ask if they want to override
+					Object [] options = {"Yes","No"};
+					int n = JOptionPane.showOptionDialog(null, "Account already exists, do you want to overwrite it?", 
+							"Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null, options, options[0]);
+					//if user selects YES, delete account and all linked transactions and then send message that account has been deleted
+					if (n == JOptionPane.YES_OPTION){
+						//delete old instance of the transaction 
+						updateAccount();
+						System.out.println("updating");
+						}
+					else if(n == JOptionPane.NO_OPTION){
+						//insert new transaction
+						insertAccount(buildNewAccountSignature());
+					}
+				}
+				else{
+					insertAccount(buildNewAccountSignature());
+				}	
 			} catch (SQLException e1) {
 				//This is a generic exception that indicates there was a problem with insertAccount.
 				e1.printStackTrace();
@@ -92,16 +115,103 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		}
 	}
 	
+	private void updateAccount() throws SQLException{
+		Connection conn = get_connection();
+    	//delete query
+		String sql = "UPDATE UserAccounts SET AccountNumber = ?, RoutingNum = ?, Bank_Name = ?, "
+				+ "Account_Title = ?, CardNum = ? WHERE AccountNumber = ? AND Username = ?;";
+    	PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	try {
+			String [] updateValues = buildUpdateAccountSignature();
+	    	prepared_statement.setString(1, updateValues[0]);
+	    	prepared_statement.setString(2, updateValues[1]);
+	    	prepared_statement.setString(3, updateValues[2]);
+	    	prepared_statement.setString(4, updateValues[3]);
+	    	prepared_statement.setString(5, updateValues[4]);
+	    	prepared_statement.setString(6, updateValues[0]);
+	    	prepared_statement.setString(7, updateValues[6]);
+	    	prepared_statement.executeUpdate();
+		} catch (InvalidAddAccountInputException e) {
+			e.printStackTrace();
+		} finally{
+			conn.close();
+		}	
+		
+	}
+
+	private String[] buildUpdateAccountSignature() throws InvalidAddAccountInputException {
+		String acctNum = acctNumText.getText();
+		String routNum = routNumText.getText();
+		String bank = bankText.getText();
+		String acctName = acctNameText.getText();
+		String cardNum = cardNumText.getText();
+		String balance = balanceText.getText();
+		
+		String [] updateVals = {acctNum, routNum, bank, acctName, cardNum, balance, userName};
+		return updateVals;
+	}
+
+	private boolean AccountExists(String acctNum, String routNum) throws SQLException{
+		Connection conn = get_connection();
+		String sql = "Select Account_Title from  UserAccounts where AccountNumber = ? and RoutingNum = ? and Username = ?";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+		prepared_statement.setString(1, acctNum);
+		prepared_statement.setString(2, routNum);
+		prepared_statement.setString(3, userName);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	try{
+    		rs.next();
+    		rs.getString(1);
+    		return true;
+    	}
+    	catch(SQLException e1){
+    		return false;
+    	}
+	}
+
+	public static void populate(String acctNum, String routNum){
+		try{
+			String [] acct_info = getAcctInfo(acctNum,routNum);
+			for (int i=0; i<textFields.length; i++){
+				textFields[i].setText(acct_info[i]);
+			}
+		}
+		catch (SQLException e1){
+			e1.printStackTrace();
+			System.out.println("error");
+		}
+	}
+	
+	public static String[] getAcctInfo(String acctNum, String routNum) throws SQLException{
+		Connection conn = get_connection();
+		String sql = "SELECT AccountNumber, RoutingNum, Bank_Name, Account_Title, CardNum, Balance FROM UserAccounts WHERE AccountNumber = ? AND RoutingNum = ?;";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.setString(1, acctNum);
+    	prepared_statement.setString(2, routNum);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	rs.next();
+    	String [] acctInfo = { rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getString(6)};
+    	conn.close();
+		return acctInfo;
+	}
+	
+	
 	public void insertAccount(String values) throws SQLException{
 		// execute update to add account into database
 		Connection conn = get_connection();
-		String sql = "INSERT INTO UserAccounts (AccountNumber, RoutingNum, Bank_Name, "
-				+ "Account_Title, UserName, CardNum, Balance) VALUES (" + values + ")";
+		Statement stmt = conn.createStatement();
+		String sql = "INSERT INTO UserAccounts (AccountNumber, RoutingNum, Bank_Name, Account_Title, UserName, CardNum, Balance)"
+				+ "VALUES (" + values + ")";
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
 		prepared_statement.executeUpdate();
 		conn.close();
 	}
 
+	/** InvalidAddAccountInputException
+	 * This exception is thrown when there is invalid input in the 
+	 * 
+	 *
+	 */
 	public class InvalidAddAccountInputException extends Exception {
 		String cause;
 
@@ -210,7 +320,7 @@ public class AddAccount extends BasicLayout implements ActionListener{
 			throw new InvalidAddAccountInputException("Balance cannot be blank.");
 		else if (isNotNumeric(balance))
 			throw new InvalidAddAccountInputException("Balance has to be numeric.");
-		else if (Integer.parseInt(balance) < 0)
+		else if (Double.parseDouble(balance) < 0)
 			throw new InvalidAddAccountInputException("Balance cannot be negative.");
 	}
 
@@ -231,4 +341,5 @@ public class AddAccount extends BasicLayout implements ActionListener{
 		else
 			return false;
 	}
+
 }

@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.swing.JButton;
@@ -32,7 +33,6 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	JLabel header = new JLabel("Add New Transaction");
 	JButton cancel = new JButton("Cancel");
 	JButton save = new JButton("Save Transaction");
-	
 	JLabel creditIdLabel = new JLabel ("CreditId:");
 	JLabel dateLabel = new JLabel("Date:");
 	JLabel titleLabel = new JLabel("Title:");
@@ -50,57 +50,21 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	static JComboBox<String> categoryList;
 	static JComboBox<String> accountList;
 	JLabel [] labels = {creditIdLabel, dateLabel, titleLabel, locationLabel, budgetIdLabel, amountLabel};
-	static JTextField [] textFields = {creditIdText, dateText, titleText, locationText, budgetIdText, amountText};
+	static JTextField [] textFields ={creditIdText, dateText, titleText, locationText, budgetIdText, amountText};
 	JLabel [] comboLabels;
+	static ArrayList<Category> categories = new ArrayList<>();
+	ArrayList<Account> accounts = new ArrayList<>();
+	static ArrayList<Category> cats = new ArrayList<>();
+	static ArrayList<Account> acctS = new ArrayList<>();
+	static String [] catS;
+	ArrayList<Category> catNames = new ArrayList<>();	
+	String catPicked = "";
+	String acctPicked = "";
 	
 	// Build transaction interface.
 	public AddTransaction(){
-		dateText.setText("MM/DD/YYYY");
-		middle.setLayout(new GridBagLayout());
-		for (int i=0 ; i< labels.length ; i++){
-			GridBagConstraints c = new GridBagConstraints();
-			c.fill = GridBagConstraints.HORIZONTAL;
-			c.gridx = 1;
-			c.gridy = i+1;
-			c.gridwidth=2;
-			middle.add(labels[i],c);
-			GridBagConstraints d = new GridBagConstraints();
-			d.fill = GridBagConstraints.HORIZONTAL;
-			d.gridx = 3;
-			d.gridy = i+1;
-			d.gridwidth=2;
-			middle.add(textFields[i],d);
-			textFields[i].addActionListener(this);
-		}
-		//get these from the database
-		String [] categoryStrings = {"Household","Food","Emergency"};
-		JComboBox<String> categoryList = new JComboBox<String>(categoryStrings);
-		categoryList.setSelectedIndex(0);
-		categoryList.addActionListener(this);
-		//get these from the database
-		String [] accountStrings = {"Savings","Checking","Credit", "Cash"};
-		JComboBox<String> accountList = new JComboBox<String>(accountStrings);
-		accountList.setSelectedIndex(0);
-		accountList.addActionListener(this);
-		
-		JLabel [] comboLabels = {categoryLabel, accountLabel};
-		JComboBox [] catANDacctLists = {categoryList, accountList};
-		
-		for(int i=0; i<2;i++){
-			GridBagConstraints e = new GridBagConstraints();
-			e.fill = GridBagConstraints.HORIZONTAL;
-			e.gridx = 1;
-			e.gridy = labels.length +i+1;
-			e.gridwidth=2;
-			middle.add(comboLabels[i],e);
-			GridBagConstraints f = new GridBagConstraints();
-			f.fill = GridBagConstraints.HORIZONTAL;
-			f.gridx = 3;
-			f.gridy = labels.length +i+1;
-			f.gridwidth=2;
-			middle.add(catANDacctLists[i],f);
-		}
-		
+		dateText.setText("YYYY/MM/DD");
+		callCreateMiddle();
 		top.add(header);
 		bottom.setLayout(new GridLayout(1,2));
 		bottom.add(cancel);
@@ -120,7 +84,25 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 		// if Save Transaction is pressed. 
 		else if (label == "Save Transaction") {
 			try {
-				insertTransaction(buildNewTransactionSignature());
+				String credit = creditIdText.getText();
+				if (creditExists(credit) == true){
+					//ask if they want to override
+					Object [] options = {"Yes","No"};
+					int n = JOptionPane.showOptionDialog(null, "Transaction " + credit+ " already exists, do you want to overwrite it?", 
+							"Delete Account", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null, options, options[0]);
+					//if user selects YES, delete account and all linked transactions and then send message that account has been deleted
+					if (n == JOptionPane.YES_OPTION){
+						//delete old instance of the transaction 
+						updateTransaction();
+						}
+					else if(n == JOptionPane.NO_OPTION){
+						//insert new transaction
+						insertTransaction(buildNewTransactionSignature());
+					}
+				}
+				else{
+					insertTransaction(buildNewTransactionSignature());
+				}
 			} catch (SQLException e1) {
 				//This is a generic exception that indicates there was a problem with insertAccount.
 				e1.printStackTrace();
@@ -129,7 +111,10 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 				//This means that there was a problem with the input from the user.
 				e2.printImproperInput();
 				e2.showErrorMessage();
-			} finally {
+			} catch(Exception otherException){ 
+				System.out.println(otherException.getMessage());
+			}
+			finally {
 				BudgetApplet.changeScreen("Transaction Summary");
 			}
 		}
@@ -141,14 +126,206 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 			for (int i=0; i<6; i++){
 				textFields[i].setText(tran_info[i]);
 			}
-			System.out.println(tran_info[7]);
-			for (Component i: categoryList.getComponents()){
-				System.out.println(i.getName());
-			}
+			System.out.println(tran_info[6]);
+			System.out.println(getCompIndex(tran_info[6]));
+			categoryList.setSelectedIndex(getCompIndex(tran_info[6]));
 		}
 		catch (SQLException e1){
 			e1.printStackTrace();
 			System.out.println("error");
+		}
+	}
+	
+	public static int getCompIndex(String categoryName){
+		for (Category i : categories){
+			System.out.println(categoryName+ "  "+ i.getCat());
+			if (categoryName.equals(i.getCat())){
+				return categories.indexOf(i);
+			}
+		}
+		return 0;
+	}
+	
+	public boolean creditExists(String credit) throws SQLException{
+		Connection conn = get_connection();
+		String sql = "Select Title from  Credit where CreditID = ? and Username = ?";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+		prepared_statement.setString(1, credit);
+		prepared_statement.setString(2, userName);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	try{
+    		rs.next();
+    		rs.getString(1);
+    		return true;
+    	}
+    	catch(SQLException e1){
+    		return false;
+    	}
+	}
+	
+	/** deleteTransaction
+	 * this method queries the database to delete a transaction base don the creditID and username of user
+	 */
+	public void updateTransaction() throws SQLException{
+		Connection conn = get_connection();
+    	//delete query
+    	String sql = "UPDATE Credit SET Title = ?, Budget_ID = ?, Category = ?, Description = "
+    			+ "?, Amount = ? WHERE CreditID = ? AND Username = ?;";
+    	//String sql = "DELETE FROM Credit WHERE CreditID = ? AND Username = ?;";
+    	PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	try {
+			String [] updateValues = buildUpdateTransactionSignature();
+	    	prepared_statement.setString(1, updateValues[0]);
+	    	prepared_statement.setString(2, updateValues[1]);
+	    	prepared_statement.setString(3, updateValues[2]);
+	    	prepared_statement.setString(4, updateValues[3]);
+	    	prepared_statement.setString(5, updateValues[4]);
+	    	prepared_statement.setString(6, updateValues[5]);
+	    	prepared_statement.setString(7, updateValues[6]);
+	    	prepared_statement.executeUpdate();
+		} catch (InvalidAddTransactionInputException e) {
+			e.printStackTrace();
+		} finally{
+			conn.close();
+		}	
+	}
+	
+	public ArrayList<Category> getCategory() throws SQLException{
+		Connection conn = get_connection();
+		String sql = "Select Category, Budget_ID, Username from Category where Username = ? ";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.setString(1, userName);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	categories.clear();
+    	while(rs.next()){
+    		//category name, budget_id, username 
+    		categories.add(new Category(rs.getString(1), rs.getString(2), rs.getString(3)));
+    	}
+    	conn.close();
+    	return categories;
+	}
+	
+	public ArrayList<Account> getAccount() throws SQLException{
+		Connection conn = get_connection();
+		String sql = "Select AccountNumber, RoutingNum, Account_Title from UserAccounts where Username = ? ";
+		PreparedStatement prepared_statement = conn.prepareStatement(sql);
+    	prepared_statement.setString(1, userName);
+    	ResultSet rs = prepared_statement.executeQuery();
+    	accounts.clear();
+    	while(rs.next()){
+    		String acct_num = rs.getString(1);
+    		String rout_num = rs.getString(2);
+    		String acct_string = rs.getString(3);
+    		Account newAccount = new Account(acct_num, rout_num, acct_string);
+    		accounts.add(newAccount);
+    	}
+    	conn.close();
+    	return accounts;
+	}
+	
+	
+	public void callCreateMiddle(){
+		middle.setLayout(new GridBagLayout());
+		middle.removeAll();
+		try{
+			ArrayList<Category> cats= getCategory();
+			ArrayList<Account> accts = getAccount();
+			createMiddle(cats,accts);
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+	}
+	
+	public void createMiddle(ArrayList<Category> cats, ArrayList<Account> accts){
+		for (int i=0 ; i< labels.length ; i++){
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.gridx = 1;
+			c.gridy = i+1;
+			c.gridwidth=2;
+			middle.add(labels[i],c);
+			GridBagConstraints d = new GridBagConstraints();
+			d.fill = GridBagConstraints.HORIZONTAL;
+			d.gridx = 3;
+			d.gridy = i+1;
+			d.gridwidth=2;
+			middle.add(textFields[i],d);
+			textFields[i].addActionListener(this);
+		}
+		//get categories from database 
+		//JComboBox<String> categoryList;
+		ArrayList<String> catNames =new ArrayList<>();
+		try{
+			catNames.clear();
+			for (Category c: cats){
+				catNames.add(c.getCat());
+			}
+			int num = catNames.size();
+			catS = new String[num];
+			for( int i=0 ; i<num; i++){
+				catS[i] = catNames.get(i);
+			}
+			categoryList = new JComboBox<String>(catS);
+			categoryList.setSelectedIndex(0);
+			categoryList.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					JComboBox cb = (JComboBox)e.getSource();
+					catPicked = (String)cb.getSelectedItem();	
+				}
+			});
+		}
+		catch(java.lang.IllegalArgumentException e2){
+			String [] categoryStrings = {"Household","Food","Emergency"};
+			categoryList = new JComboBox<String>(categoryStrings);
+			categoryList.setSelectedIndex(0);
+			categoryList.addActionListener(this);
+		}
+
+		
+		//get categories from database 
+		//JComboBox<String> accountList;
+		ArrayList<String> acctNames =new ArrayList<>();
+		try{
+			acctNames.clear();
+			for (Account a: accts){
+				acctNames.add(a.getName());
+			}
+			int num = acctNames.size();
+			String [] acctS = new String[num];
+			for( int i=0 ; i<num; i++){
+				acctS[i] = acctNames.get(i);
+			}
+			accountList = new JComboBox<String>(acctS);
+			accountList.setSelectedIndex(0);
+			accountList.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					JComboBox cb = (JComboBox)e.getSource();
+					acctPicked = (String)cb.getSelectedItem();	
+				}
+			});
+		}
+		catch(java.lang.IllegalArgumentException e2){
+			String [] accountStrings = {"Household","Food","Emergency"};
+			accountList = new JComboBox<String>(accountStrings);
+			accountList.setSelectedIndex(0);
+			accountList.addActionListener(this);
+		}
+		JLabel [] comboLabels = {categoryLabel, accountLabel};
+		JComboBox [] catANDacctLists = {categoryList, accountList};
+		
+		for(int i=0; i<2;i++){
+			GridBagConstraints e = new GridBagConstraints();
+			e.fill = GridBagConstraints.HORIZONTAL;
+			e.gridx = 1;
+			e.gridy = labels.length +i+1;
+			e.gridwidth=2;
+			middle.add(comboLabels[i],e);
+			GridBagConstraints f = new GridBagConstraints();
+			f.fill = GridBagConstraints.HORIZONTAL;
+			f.gridx = 3;
+			f.gridy = labels.length +i+1;
+			f.gridwidth=2;
+			middle.add(catANDacctLists[i],f);
 		}
 	}
 	
@@ -171,41 +348,80 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 		return tranInfo;
 	}
 	
-	
 	private void insertTransaction(String values) throws SQLException{
 		// execute update to add account into database
 		Connection conn = get_connection();
-		String sql = "INSERT INTO Credit (CreditID, Username, Title, Budget_ID, Category,"
+		Statement stmt = conn.createStatement();
+		String sql = "INSERT INTO Credit (CreditID, DateCreated, Username, Title, Budget_ID, Category,"
 				+ " Description, Amount,AccountNumber)" + "VALUES (" + values + ")";
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
 		prepared_statement.executeUpdate();
 		conn.close();
 	}
 
-	private String buildNewTransactionSignature() throws InvalidAddTransactionInputException{
+	private String [] buildUpdateTransactionSignature() throws InvalidAddTransactionInputException{
 		checkAddTransactionInput();
 		
-		String creditId = creditIdText.getText();
+		String credit = creditIdText.getText();
+		String budget = budgetIdText.getText();
 		String date = dateText.getText();
 		String title = titleText.getText();
 		String location = locationText.getText();
 		String amount = amountText.getText();
-		String budgetId = budgetIdText.getText();
-		String category = categoryList.getItemAt(categoryList.getSelectedIndex());
-		String accountName = accountList.getItemAt(accountList.getSelectedIndex());
+		String category = catPicked;
+		String accountName = "";
+		try{
+			accountName = getAccountNum(acctPicked);
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+		String [] updateVals = {title, budget, category, location, amount, credit, userName};
+		return updateVals;
+	}
+	
+	private String buildNewTransactionSignature() throws InvalidAddTransactionInputException{
+		checkAddTransactionInput();
 		
-		String signature = "\"" + creditId + "\","
-				+ " \"" + userName + "\","
+		String credit = creditIdText.getText();
+		String budget = budgetIdText.getText();
+		String date = dateText.getText();
+		String title = titleText.getText();
+		String location = locationText.getText();
+		String amount = amountText.getText();
+		String category = catPicked;
+		String accountName = "";
+		try{
+			accountName = getAccountNum(acctPicked);
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+		
+		
+		String signature = " \""+ credit+"\","
+				+ " \"" + date + "\","
+				+ " \"" +	userName+ "\","
 				+ " \"" + title + "\","
-				+ " \"" + budgetId + "\","
-				+ " \"" + category + "\","
+				+ " \""+ budget +"\","
+				+ " \"" + category+ "\","
 				+ " \"" + location + "\","
 				+ amount + ","
-				+ " \"" + date + "\""
-				+ " \"" + accountName + "\",";
+				+ " \""+ accountName +"\"";
 
 		return signature;
 	}	
+	
+	public String getAccountNum(String accountName) throws SQLException{
+		Connection conn = get_connection();
+		String sql = "Select AccountNumber from UserAccounts where Account_Title = ? and Username = ?";
+		PreparedStatement pm = conn.prepareStatement(sql);
+		pm.setString(1, accountName);
+		pm.setString(2, userName);
+		System.out.println(pm);
+		ResultSet rs = pm.executeQuery();
+		rs.next();
+		return rs.getString(1);
+	}
+	
 	
 	/** checkAddTransactionInput
 	 * This method validates the input from the fields.
@@ -236,15 +452,9 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 	private void checkDate() throws InvalidAddTransactionInputException {
 		// Must not be blank
 		// Must be MM/DD/YYYY
-		SimpleDateFormat ft = new SimpleDateFormat("dd/MM/yyyy");
 		String date = dateText.getText();
 		if (isEmpty(date))
 			throw new InvalidAddTransactionInputException("Date cannot be blank");
-		try {
-			Date t = ft.parse(date);
-		} catch (ParseException e) {
-			throw new InvalidAddTransactionInputException("Date format must be dd/MM/yyyy");
-		}
 	}
 
 	private void checkTitle() throws InvalidAddTransactionInputException {
@@ -268,7 +478,7 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 			throw new InvalidAddTransactionInputException("Amount cannot be blank");
 		else if (isNotNumeric(amount))
 			throw new InvalidAddTransactionInputException("Amount must be numeric");
-		else if (Integer.parseInt(amount) < 0)
+		else if (Double.parseDouble(amount) < 0)
 			throw new InvalidAddTransactionInputException("Amount must be postive");
 	}
 
@@ -331,5 +541,49 @@ public class AddTransaction extends BasicLayout implements ActionListener{
 			return true;
 		}
 		return false;
+	}
+	
+	public class Category{
+		private String category;
+		private String budgetID;
+		private String username;
+		
+		public Category(String cat, String bud, String un){
+			this.category = cat;
+			this.budgetID = bud;
+			this.username = un;
+		}
+		public String getCat(){
+			return category;
+		}
+		public String getBUd(){
+			return budgetID;
+		}
+		public String getUN(){
+			return username;
+		}
+		
+	}
+	
+	public class Account{
+		private String account_number;
+		private String routing_number;
+		private String name;
+		
+		public Account(String acct_num, String rout_num, String acct_name){
+			this.account_number = acct_num;
+			this.routing_number = rout_num;
+			this.name = acct_name;
+		}
+		public String getNum(){
+			return account_number;
+		}
+		public String getRout(){
+			return routing_number;
+		}
+		public String getName(){
+			return name;
+		}
+		
 	}
 }

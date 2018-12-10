@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class CreateLogin extends JPanel implements ActionListener {
+	// create labels, text fields, and buttons to input new user information
 	JLabel userLabel = new JLabel("USERNAME:");
 	JLabel fNLabel = new JLabel("FIRST NAME:");
 	JLabel lNLabel = new JLabel("LAST NAME:");
@@ -36,10 +37,13 @@ public class CreateLogin extends JPanel implements ActionListener {
 	JTextField passwordText = new JTextField();
 	JTextField pass2Text = new JTextField();
 	JButton createButton = new JButton("   CREATE   ");
+	// create list of all labels and all text fields in order to loop through and add them to the screen later 
 	JLabel [] labels = {userLabel,fNLabel, lNLabel, mNLabel, emailLabel, passLabel, repeatPassLabel };
 	JTextField [] textFields = {userNameText, firstNameText, lastNameText, middleInitialText, emailText, passwordText, pass2Text};
 	
 	public CreateLogin(){
+		// for each label/text field pair, add them to a row on the screen 
+		// give each text field an action listener
 		setLayout(new GridBagLayout());
 		for (int i=0 ; i< labels.length ; i++){
 			GridBagConstraints c = new GridBagConstraints();
@@ -56,6 +60,7 @@ public class CreateLogin extends JPanel implements ActionListener {
 			add(textFields[i],d);
 			textFields[i].addActionListener(this);
 		}
+		// below all label/text field pairs, add a button to create the new user 
 		GridBagConstraints i = new GridBagConstraints();
 		i.fill = GridBagConstraints.HORIZONTAL;
 		i.gridx = 2;
@@ -69,10 +74,9 @@ public class CreateLogin extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		//if createButton is pressed
+		//if createButton is pressed, get all text from text fields, verify inputs, then add user to database 
 		JButton button = (JButton)e.getSource();
 		String label = button.getText();
-		
 		String userName = userNameText.getText();
 		String firstName = firstNameText.getText();
 		String lastName = lastNameText.getText();
@@ -84,6 +88,7 @@ public class CreateLogin extends JPanel implements ActionListener {
 		if (label == "   CREATE   "){	
 
 			try {
+				// verify inputs then add to the database 
 				insertUser(buildNewUserSignature());
 			} catch (SQLException e1) {
 				//This is a generic exception that indicates there was a problem with insertAccount.
@@ -117,7 +122,7 @@ public class CreateLogin extends JPanel implements ActionListener {
 	
 	public String buildNewUserSignature() throws InvalidAddUserInputException {
 		checkAddUserInput();
-
+		// if all inputs are valid, create a string of values to go into insert Query 
 		String userName = userNameText.getText();
 		String firstName = firstNameText.getText();
 		String lastName = lastNameText.getText();
@@ -137,6 +142,7 @@ public class CreateLogin extends JPanel implements ActionListener {
 	}
 	
 	public void checkAddUserInput() throws InvalidAddUserInputException {
+		// call methods to verify inputs
 		checkUsername();
 		checkFirst();
 		checkLast();

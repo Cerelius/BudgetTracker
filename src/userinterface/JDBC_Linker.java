@@ -1,11 +1,15 @@
+package userinterface;
+
 import java.sql.*;
-
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-
 import java.io.Console;
 
 public class JDBC_Linker
 {
+	static Connection conn;
+
+	
+	
     public static void main(String[] Args) throws SQLException
     {
     	MysqlDataSource dataSource = new MysqlDataSource();
@@ -16,8 +20,6 @@ public class JDBC_Linker
 
     	Connection conn = dataSource.getConnection();
     	
-    	/*
-    	Example of using connection:
     	
     	Statement stmt = conn.createStatement();
     	String sql = "SELECT * FROM Users where Username = ?";
@@ -44,7 +46,7 @@ public class JDBC_Linker
     	    System.out.println("");
     	}
     	
-    	*/
+    	
     	
     	conn.close();
     }

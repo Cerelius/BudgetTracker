@@ -1,3 +1,4 @@
+package userinterface;
 import java.awt.Button;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -63,7 +64,7 @@ public class BudgetSummary extends BasicLayout implements ActionListener
 	public JTable create_summary_table() throws SQLException
 	{
 		Connection conn = get_connection();
-		String sql = "Select temp.Category as Category, temp.Amount as Balance, coalesce(Credit.Amount, 0) as Spent, coalesce(temp.Amount - Credit.Amount, temp.Amount) as Remaining from (select * from Category where Username = ?) temp left join Credit on Credit.Username = ? and temp.Username = ? and Credit.Budget_ID = temp.Budget_ID and Credit.Category = temp.Category ";
+		String sql = "Select temp.Budget_ID, temp.Category as Category, temp.Amount as Balance, coalesce(Credit.Amount, 0) as Spent, coalesce(temp.Amount - Credit.Amount, temp.Amount) as Remaining from (select * from Category where Username = ?) temp left join Credit on Credit.Username = ? and temp.Username = ? and Credit.Budget_ID = temp.Budget_ID and Credit.Category = temp.Category ";
 		
 		PreparedStatement prepared_statement = conn.prepareStatement(sql);
 		prepared_statement.setString(1, getUserName());
